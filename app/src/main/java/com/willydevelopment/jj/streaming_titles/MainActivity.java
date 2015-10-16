@@ -1,5 +1,6 @@
 package com.willydevelopment.jj.streaming_titles;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.net.codeusa.NetflixRoulette;
@@ -20,7 +22,10 @@ public class MainActivity extends AppCompatActivity {
     static NetflixRoulette nflxr = new NetflixRoulette();
     TextView textView;
     EditText editText;
-    public String movieTitle;
+    public static String movieTitle;
+    public static String moviePosterURL;
+    private boolean movieIsFound;
+    private ProgressBar progressSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,27 +35,27 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
         textView = (TextView) findViewById(R.id.textView);
         editText = (EditText) findViewById(R.id.editText);
+        progressSpinner = (ProgressBar)findViewById(R.id.progressBar);
+        progressSpinner.setVisibility(View.GONE);
     }
 
     public void onGetInfoButtonClicked (View v) throws IOException, JSONException {
+        progressSpinner.setVisibility(View.VISIBLE);
         movieTitle = editText.getText().toString();
-        //movieInfo = nflxr.getAllData(movieTitle);
-        textView.setText(nflxr.getAllData(movieTitle));
-
-
+        try {
+            moviePosterURL = nflxr.getMediaPoster(movieTitle);
+            movieIsFound = true;
+        } catch (IOException e) {
+            progressSpinner.setVisibility(View.GONE);
+            textView.setText("No such title.");
+            movieIsFound = false;
+        }
+        if (movieIsFound == true) {
+            Intent searchResults = new Intent(this, ResultsActivity.class);
+            startActivity(searchResults);
+            progressSpinner.setVisibility(View.GONE);
+        }
     }
-
-    /*public static JSONObject toJsonObject(String json){
-        try{
-            JSONObject jsonObj = new JSONObject(json);
-            return jsonObj;
-        }
-        catch (JSONException e)
-        {
-            //do something
-        }
-        return null;
-    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
